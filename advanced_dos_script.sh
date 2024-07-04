@@ -17,9 +17,9 @@ while getopts "u:c:t:md" opt; do
   case $opt in
     u) IFS=',' read -r -a TARGET_URLS <<< "$OPTARG"
     ;;
-    c) CONCURRENCY="$OPTARG"
+    c) CONCURRENCY="${OPTARG:-0}"
     ;;
-    t) DURATION="$OPTARG"
+    t) DURATION="${OPTARG:-0}"
     ;;
     m) MIXED_METHODS=1
     ;;
@@ -36,7 +36,7 @@ fi
 
 send_requests() {
     local url=$1
-    local end=$((SECONDS+$DURATION))
+    local end=$((SECONDS+${DURATION:-60}))
     local method="GET"
     local user_agent=$(random_user_agent)
     local delay=0
@@ -44,12 +44,12 @@ send_requests() {
     local response_code
 
     while [ $SECONDS -lt $end ]; do
-        if [ $MIXED_METHODS -eq 1 ] && [ $((RANDOM % 2)) -eq 0 ]; then
+        if [ "${MIXED_METHODS:-0}" -eq 1 ] && [ $((RANDOM % 2)) -eq 0 ]; then
             method="POST"
             data="data=$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 13)"
         fi
 
-        if [ $RANDOM_DELAYS -eq 1 ]; then
+        if [ "${RANDOM_DELAYS:-0}" -eq 1 ]; then
             delay=$((RANDOM % 5 + 1))
             sleep $delay
         fi
